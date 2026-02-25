@@ -1,0 +1,632 @@
+<!DOCTYPE html>
+
+<html lang="ja">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>LOVE ORACLE — 深層恋愛診断</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700&family=Cinzel+Decorative:wght@700&family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet"/>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+body{
+  min-height:100vh;
+  background:linear-gradient(135deg,#0a0015 0%,#120025 40%,#0d0020 70%,#05000f 100%);
+  font-family:'Noto Sans JP','Hiragino Sans',sans-serif;
+  color:#f0e8ff;
+  overflow-x:hidden;
+}
+#stars{position:fixed;inset:0;pointer-events:none;z-index:0;}
+.star{position:absolute;border-radius:50%;background:white;}
+.orb{position:fixed;border-radius:50%;pointer-events:none;z-index:0;}
+#app{position:relative;z-index:1;max-width:680px;margin:0 auto;padding:40px 20px 80px;}
+
+@keyframes twinkle{from{opacity:0.1;transform:scale(1);}to{opacity:0.7;transform:scale(1.3);}}
+@keyframes floatUp{from{opacity:0;transform:translateY(30px);}to{opacity:1;transform:translateY(0);}}
+@keyframes shimmer{0%{background-position:-200% center;}100%{background-position:200% center;}}
+@keyframes pulseGlow{0%,100%{box-shadow:0 0 20px rgba(180,100,255,0.3);}50%{box-shadow:0 0 40px rgba(180,100,255,0.6),0 0 80px rgba(120,50,200,0.3);}}
+@keyframes orbFloat{0%,100%{transform:translate(0,0) scale(1);}33%{transform:translate(30px,-20px) scale(1.05);}66%{transform:translate(-20px,15px) scale(0.95);}}
+
+.fade-in{animation:floatUp 0.6s ease both;}
+
+/* INTRO */
+#intro{text-align:center;}
+.logo-emoji{font-size:64px;margin-bottom:16px;}
+.logo-title{
+font-family:‘Cinzel Decorative’,serif;
+font-size:clamp(20px,5vw,32px);
+letter-spacing:0.1em;
+background:linear-gradient(90deg,#c084fc,#f9a8d4,#c084fc);
+background-size:200%;
+-webkit-background-clip:text;
+-webkit-text-fill-color:transparent;
+animation:shimmer 4s linear infinite;
+margin-bottom:8px;
+}
+.logo-sub{font-family:‘Cormorant Garamond’,serif;font-size:16px;color:rgba(240,232,255,0.6);letter-spacing:0.3em;margin-bottom:40px;}
+.intro-card{
+background:rgba(255,255,255,0.04);
+border:1px solid rgba(180,100,255,0.2);
+border-radius:24px;
+padding:32px;
+margin-bottom:40px;
+backdrop-filter:blur(20px);
+}
+.intro-card p{font-size:15px;line-height:2;color:rgba(240,232,255,0.75);}
+.intro-card strong{color:#c084fc;}
+.intro-card small{font-size:13px;color:rgba(240,232,255,0.5);}
+.btn-start{
+background:linear-gradient(135deg,#7c3aed,#db2777);
+border:none;
+border-radius:99px;
+padding:18px 56px;
+font-size:17px;
+font-weight:700;
+color:white;
+cursor:pointer;
+letter-spacing:0.1em;
+font-family:‘Noto Sans JP’,sans-serif;
+animation:pulseGlow 3s ease-in-out infinite;
+transition:transform 0.2s;
+}
+.btn-start:hover{transform:scale(1.05);}
+
+/* QUIZ */
+#quiz{display:none;}
+.quiz-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:32px;}
+.quiz-brand{font-family:‘Cinzel Decorative’,serif;font-size:13px;color:rgba(192,132,252,0.7);letter-spacing:0.2em;}
+.quiz-count{font-size:13px;color:rgba(240,232,255,0.5);}
+.progress-wrap{background:rgba(255,255,255,0.07);border-radius:99px;height:3px;margin-bottom:40px;overflow:hidden;}
+.progress-bar{height:100%;background:linear-gradient(90deg,#7c3aed,#db2777);border-radius:99px;transition:width 0.4s ease;width:0%;}
+.cat-badge{
+display:inline-block;
+background:rgba(124,58,237,0.2);
+border:1px solid rgba(124,58,237,0.4);
+border-radius:99px;
+padding:4px 14px;
+font-size:11px;
+letter-spacing:0.15em;
+color:#c084fc;
+margin-bottom:20px;
+}
+.question-text{
+font-family:‘Cormorant Garamond’,serif;
+font-size:clamp(20px,4vw,26px);
+font-weight:600;
+line-height:1.6;
+margin-bottom:36px;
+color:#f0e8ff;
+}
+.options{display:flex;flex-direction:column;gap:12px;margin-bottom:32px;}
+.opt-btn{
+background:rgba(255,255,255,0.04);
+border:1px solid rgba(255,255,255,0.1);
+border-radius:16px;
+padding:18px 22px;
+text-align:left;
+color:rgba(240,232,255,0.75);
+font-size:15px;
+line-height:1.6;
+cursor:pointer;
+display:flex;
+align-items:flex-start;
+gap:14px;
+backdrop-filter:blur(10px);
+transition:all 0.25s ease;
+font-family:‘Noto Sans JP’,sans-serif;
+width:100%;
+}
+.opt-btn:hover{transform:translateX(6px);}
+.opt-btn.selected{
+background:linear-gradient(135deg,rgba(124,58,237,0.4),rgba(219,39,119,0.3));
+border:1px solid rgba(192,132,252,0.7);
+color:#f0e8ff;
+box-shadow:0 4px 30px rgba(124,58,237,0.3);
+}
+.opt-label{
+min-width:26px;height:26px;
+border-radius:50%;
+border:2px solid rgba(255,255,255,0.2);
+display:flex;align-items:center;justify-content:center;
+font-size:11px;font-weight:700;
+color:rgba(255,255,255,0.4);
+transition:all 0.2s;
+flex-shrink:0;
+margin-top:1px;
+}
+.opt-btn.selected .opt-label{
+border-color:#c084fc;
+background:#7c3aed;
+color:white;
+}
+.btn-next-wrap{display:flex;justify-content:flex-end;}
+.btn-next{
+background:rgba(255,255,255,0.05);
+border:none;
+border-radius:99px;
+padding:14px 40px;
+font-size:15px;
+font-weight:700;
+color:rgba(255,255,255,0.2);
+cursor:not-allowed;
+transition:all 0.25s;
+font-family:‘Noto Sans JP’,sans-serif;
+letter-spacing:0.05em;
+}
+.btn-next.active{
+background:linear-gradient(135deg,#7c3aed,#db2777);
+color:white;
+cursor:pointer;
+}
+
+/* RESULT */
+#result{display:none;}
+.result-header{text-align:center;margin-bottom:48px;}
+.result-star{font-size:48px;margin-bottom:12px;}
+.result-label{font-family:‘Cinzel Decorative’,serif;font-size:13px;letter-spacing:0.3em;color:#c084fc;margin-bottom:12px;}
+.result-title{font-family:‘Cormorant Garamond’,serif;font-size:clamp(22px,5vw,32px);font-style:italic;}
+
+.card{
+border-radius:24px;
+padding:36px;
+margin-bottom:24px;
+backdrop-filter:blur(20px);
+animation:floatUp 0.6s ease both;
+}
+.card-sm{
+border-radius:20px;
+padding:24px;
+backdrop-filter:blur(15px);
+animation:floatUp 0.6s ease both;
+}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:24px;}
+.card-label{font-size:10px;letter-spacing:0.15em;color:rgba(240,232,255,0.45);margin-bottom:4px;}
+.card-value{font-size:15px;font-weight:700;}
+.attach-emoji{font-size:44px;}
+.attach-name{font-size:26px;font-weight:700;}
+.attach-meta{font-size:11px;letter-spacing:0.2em;color:rgba(240,232,255,0.5);margin-bottom:4px;}
+.attach-desc{font-size:15px;line-height:1.9;color:rgba(240,232,255,0.8);}
+
+.section-label{font-size:13px;color:rgba(240,232,255,0.6);margin-bottom:14px;}
+.bar-row{margin-bottom:10px;}
+.bar-head{display:flex;justify-content:space-between;font-size:12px;color:rgba(255,255,255,0.7);margin-bottom:4px;}
+.bar-track{background:rgba(255,255,255,0.08);border-radius:99px;height:8px;overflow:hidden;}
+.bar-fill{height:100%;border-radius:99px;transition:width 1.2s cubic-bezier(0.23,1,0.32,1);}
+
+.advice-text{font-size:13px;line-height:1.85;color:rgba(240,232,255,0.7);}
+.compat-label{font-size:11px;letter-spacing:0.2em;color:#c084fc;margin-bottom:12px;}
+.compat-text{font-size:14px;line-height:1.8;color:rgba(240,232,255,0.75);}
+
+.btn-retry{
+background:transparent;
+border:1px solid rgba(192,132,252,0.4);
+border-radius:99px;
+padding:14px 40px;
+font-size:14px;
+color:rgba(192,132,252,0.8);
+cursor:pointer;
+letter-spacing:0.1em;
+transition:all 0.25s;
+font-family:‘Noto Sans JP’,sans-serif;
+display:block;margin:0 auto;
+}
+.btn-retry:hover{background:rgba(192,132,252,0.1);}
+
+canvas{display:block;margin:0 auto;}
+.radar-label{font-size:11px;letter-spacing:0.2em;color:rgba(240,232,255,0.4);margin-bottom:16px;text-align:center;}
+</style>
+
+</head>
+<body>
+
+<div id="stars"></div>
+<div id="app">
+
+<!-- INTRO -->
+
+<div id="intro" class="fade-in">
+  <div class="logo-emoji">🔮</div>
+  <div class="logo-title">LOVE ORACLE</div>
+  <div class="logo-sub">深層恋愛診断</div>
+  <div class="intro-card">
+    <p>あなたの無意識に潜む恋愛パターンを、心理学に基づく<br>
+    <strong>12の質問</strong>で多角的に診断します。<br><br>
+    <small>
+      ・愛着スタイル（安定型／不安型／回避型／恐れ回避型）<br>
+      ・愛情言語（5つのラブランゲージ）<br>
+      ・恋愛パターン傾向<br>
+      ・総合的な恋愛プロファイル
+    </small>
+    </p>
+  </div>
+  <button class="btn-start" onclick="startQuiz()">診断をはじめる ✦</button>
+</div>
+
+<!-- QUIZ -->
+
+<div id="quiz">
+  <div class="quiz-header">
+    <div class="quiz-brand">LOVE ORACLE</div>
+    <div class="quiz-count" id="qcount">1 / 12</div>
+  </div>
+  <div class="progress-wrap"><div class="progress-bar" id="progressBar"></div></div>
+  <div class="cat-badge" id="catBadge">愛着スタイル</div>
+  <div class="question-text" id="questionText"></div>
+  <div class="options" id="optionsWrap"></div>
+  <div class="btn-next-wrap">
+    <button class="btn-next" id="btnNext" onclick="nextQ()">次へ →</button>
+  </div>
+</div>
+
+<!-- RESULT -->
+
+<div id="result">
+  <div class="result-header fade-in">
+    <div class="result-star">✦</div>
+    <div class="result-label">YOUR LOVE PROFILE</div>
+    <div class="result-title">診断結果</div>
+  </div>
+  <div id="resultContent"></div>
+</div>
+
+</div>
+
+<script>
+const questions=[
+  {id:1,cat:"愛着スタイル",text:"好きな人から返信が遅いとき、あなたはどうしますか？",opts:[
+    {t:"少し気になるが、忙しいのだろうと思って待てる",s:{secure:3,anxious:0,avoidant:1,fearful:0}},
+    {t:"何度も確認してしまい、不安で他のことが手につかない",s:{secure:0,anxious:3,avoidant:0,fearful:1}},
+    {t:"自分のことに集中する。向こうが返したいときに返すだろう",s:{secure:1,anxious:0,avoidant:3,fearful:0}},
+    {t:"嫌われたかもと思い、自分から距離を置き始める",s:{secure:0,anxious:1,avoidant:1,fearful:3}},
+  ]},
+  {id:2,cat:"愛情言語",text:"パートナーに一番愛情を感じる瞬間はどれですか？",opts:[
+    {t:"「好き」「大切」など言葉で伝えてくれたとき",s:{words:3,acts:0,gifts:0,time:1,touch:0}},
+    {t:"さりげなく助けてくれたり、気遣ってくれたとき",s:{words:0,acts:3,gifts:0,time:1,touch:0}},
+    {t:"プレゼントや「これ好きかと思って」と渡してくれたとき",s:{words:0,acts:0,gifts:3,time:0,touch:1}},
+    {t:"ただ一緒にいてくれる時間が増えたとき",s:{words:0,acts:1,gifts:0,time:3,touch:0}},
+    {t:"手を繋いだり、ハグしてくれたとき",s:{words:0,acts:0,gifts:0,time:1,touch:3}},
+  ]},
+  {id:3,cat:"葛藤対処",text:"パートナーと意見が衝突したとき、あなたはどうしますか？",opts:[
+    {t:"感情的になっても、最終的には話し合いで解決しようとする",s:{secure:2,anxious:1,avoidant:0,fearful:0}},
+    {t:"相手が怒ったら怖くて、すぐ謝ってしまう",s:{secure:0,anxious:2,avoidant:0,fearful:2}},
+    {t:"言い合いになりそうなら、その場を離れて一人になる",s:{secure:0,anxious:0,avoidant:3,fearful:1}},
+    {t:"自分の気持ちを抑えて、相手の意見に合わせる",s:{secure:0,anxious:1,avoidant:1,fearful:2}},
+  ]},
+  {id:4,cat:"愛情言語",text:"あなたが恋人に一番してあげたいことは？",opts:[
+    {t:"毎日メッセージや言葉で愛情を伝える",s:{words:3,acts:0,gifts:0,time:0,touch:0}},
+    {t:"困っているときに先回りして助ける",s:{words:0,acts:3,gifts:0,time:0,touch:0}},
+    {t:"誕生日や記念日に特別なプレゼントを贈る",s:{words:0,acts:0,gifts:3,time:0,touch:0}},
+    {t:"予定を合わせてできるだけ一緒にいる",s:{words:0,acts:0,gifts:0,time:3,touch:0}},
+    {t:"疲れているときに寄り添ってあげる",s:{words:0,acts:0,gifts:0,time:1,touch:3}},
+  ]},
+  {id:5,cat:"恋愛パターン",text:"恋愛が始まると、あなたはどんな変化がありますか？",opts:[
+    {t:"相手のことを考えつつ、自分の生活リズムも保てる",s:{healthy:3,codep:0,indep:1,intense:0}},
+    {t:"相手中心の生活になり、友人との約束を断ることが増える",s:{healthy:0,codep:3,indep:0,intense:1}},
+    {t:"恋愛でもマイペース。相手に合わせすぎることが苦手",s:{healthy:1,codep:0,indep:3,intense:0}},
+    {t:"全力で愛して全力で傷つく。感情の振れ幅が大きい",s:{healthy:0,codep:1,indep:0,intense:3}},
+  ]},
+  {id:6,cat:"愛着スタイル",text:"「この人は本当に自分のことが好きなのかな」と感じることが…",opts:[
+    {t:"ほとんどない。信頼していれば大丈夫だと思う",s:{secure:3,anxious:0,avoidant:1,fearful:0}},
+    {t:"よくある。確かめたくて試してしまうこともある",s:{secure:0,anxious:3,avoidant:0,fearful:1}},
+    {t:"あまりない。というか深く考えないようにしている",s:{secure:1,anxious:0,avoidant:3,fearful:0}},
+    {t:"頻繁にある。好きになるほど不安が大きくなる",s:{secure:0,anxious:2,avoidant:0,fearful:3}},
+  ]},
+  {id:7,cat:"恋愛パターン",text:"過去の恋愛を振り返ったとき、最も多いパターンは？",opts:[
+    {t:"お互いを尊重しながら自然に深まっていった",s:{healthy:3,codep:0,indep:1,intense:0}},
+    {t:"急激に燃え上がり、急激に燃え尽きた",s:{healthy:0,codep:1,indep:0,intense:3}},
+    {t:"好きになられると冷めてしまう、を繰り返した",s:{healthy:0,codep:0,indep:3,intense:0}},
+    {t:"相手に尽くしすぎて疲弊した",s:{healthy:0,codep:3,indep:0,intense:1}},
+  ]},
+  {id:8,cat:"愛情言語",text:"恋人に「ありがとう」を伝えるとしたら？",opts:[
+    {t:"ストレートに言葉で伝える",s:{words:3,acts:0,gifts:0,time:0,touch:0}},
+    {t:"相手の好きな料理を作るなど行動で示す",s:{words:0,acts:3,gifts:1,time:0,touch:0}},
+    {t:"小さなプレゼントをそっと渡す",s:{words:0,acts:0,gifts:3,time:0,touch:0}},
+    {t:"「今日どこか行こう」と時間を作る",s:{words:0,acts:0,gifts:0,time:3,touch:0}},
+    {t:"背中をさすったり、手を握る",s:{words:1,acts:0,gifts:0,time:0,touch:3}},
+  ]},
+  {id:9,cat:"愛着スタイル",text:"「もっと自由にしたい」と感じるのはいつ？",opts:[
+    {t:"あまり感じない。一緒にいる時間が自然と好き",s:{secure:3,anxious:0,avoidant:0,fearful:1}},
+    {t:"相手が自分に無関心に見えるとき",s:{secure:0,anxious:2,avoidant:0,fearful:2}},
+    {t:"相手が近づいてくるほど逃げたくなる",s:{secure:0,anxious:0,avoidant:3,fearful:1}},
+    {t:"好きなのに近づかれると怖くて距離を取りたくなる",s:{secure:0,anxious:1,avoidant:1,fearful:3}},
+  ]},
+  {id:10,cat:"恋愛パターン",text:"理想の恋愛のペースは？",opts:[
+    {t:"ゆっくり時間をかけて信頼を積み上げたい",s:{healthy:3,codep:0,indep:2,intense:0}},
+    {t:"早く深い関係になりたい。距離感が縮まるほど安心する",s:{healthy:0,codep:3,indep:0,intense:1}},
+    {t:"お互いの生活を大切にしながら、ゆるくつながっていたい",s:{healthy:1,codep:0,indep:3,intense:0}},
+    {t:"最初から全力で。その激しさが恋愛だと思う",s:{healthy:0,codep:1,indep:0,intense:3}},
+  ]},
+  {id:11,cat:"深層心理",text:"恋愛において、あなたが最も恐れていることは？",opts:[
+    {t:"捨てられること・見捨てられること",s:{anxious:3,fearful:2,avoidant:0,secure:0}},
+    {t:"深く傷つくこと・傷つけられること",s:{fearful:3,avoidant:1,anxious:1,secure:0}},
+    {t:"自分を失うこと・束縛されること",s:{avoidant:3,indep:2,codep:0,healthy:0}},
+    {t:"相手を傷つけてしまうこと",s:{secure:1,healthy:2,anxious:1,fearful:1}},
+  ]},
+  {id:12,cat:"深層心理",text:"「愛している」という言葉を、あなたはどう感じますか？",opts:[
+    {t:"素直に嬉しいし、自分も伝えたいと思う",s:{secure:3,healthy:2,words:2}},
+    {t:"嬉しいけど、本当かな？と少し疑ってしまう",s:{anxious:3,fearful:1}},
+    {t:"なんとなくこそばゆくて、うまく受け取れない",s:{avoidant:2,indep:2}},
+    {t:"嬉しいのに、それが怖くて距離を置きたくなる",s:{fearful:3,avoidant:1}},
+  ]},
+];
+
+const attachTypes={
+  secure:{name:"安定型",emoji:"🌿",color:"#4ade80",desc:"自己肯定感が高く、信頼ベースの恋愛ができます。相手を信じながらも自立しており、健全な距離感を保てる「恋愛の理想形」と言えます。"},
+  anxious:{name:"不安型",emoji:"🌊",color:"#60a5fa",desc:"愛情に飢えており、確認や試し行動が出やすいタイプ。愛されたい気持ちが強いぶん、深く愛することもできます。"},
+  avoidant:{name:"回避型",emoji:"🌙",color:"#a78bfa",desc:"親密さに対し無意識の防衛が働くタイプ。独立心は強く魅力的ですが、本当の意味でのつながりを避ける傾向があります。"},
+  fearful:{name:"恐れ・回避型",emoji:"🌪️",color:"#f87171",desc:"愛されたいのに近づくのが怖い、という矛盾した感情を持つタイプ。内面の豊かさと繊細さを持っています。"},
+};
+const langTypes={
+  words:{name:"言葉の愛情表現",emoji:"💬",color:"#fbbf24"},
+  acts:{name:"親切な行為",emoji:"🤝",color:"#34d399"},
+  gifts:{name:"贈り物",emoji:"🎁",color:"#f472b6"},
+  time:{name:"クオリティタイム",emoji:"⏳",color:"#60a5fa"},
+  touch:{name:"スキンシップ",emoji:"💞",color:"#fb923c"},
+};
+const patTypes={
+  healthy:{name:"バランス型",emoji:"☯️",color:"#4ade80"},
+  codep:{name:"共依存型",emoji:"🔗",color:"#f87171"},
+  indep:{name:"自立優先型",emoji:"🦅",color:"#a78bfa"},
+  intense:{name:"情熱燃焼型",emoji:"🔥",color:"#fb923c"},
+};
+
+const adviceMap={
+  secure:"あなたの安定感は大きな強みです。その信頼の根を、まだ不安を抱える相手のために惜しまず分けてあげて。",
+  anxious:"「確かめなくても大丈夫」という経験を少しずつ積んでいこう。自分自身を満たすことが、愛される鍵です。",
+  avoidant:"距離を置くのは防衛本能。傷つくことを恐れすぎず、少しだけ心の鍵を開けてみると世界が変わります。",
+  fearful:"引力と斥力が同時に働くあなたの恋愛は深く複雑。まず自分自身と安心できる関係を築くことが大切です。",
+};
+const compatMap={
+  secure:"どのタイプとも相性良し。特に不安型や恐れ回避型のパートナーの安全基地になれる可能性があります。",
+  anxious:"安定型との関係で安心感を学ぶのが理想。同じ不安型同士は共鳴しやすいが、不安が増幅することも。",
+  avoidant:"安定型が最良のパートナー。押しつけず、でも離れない安心感ある存在が心を開かせてくれます。",
+  fearful:"安定型のパートナーが最も助けになります。焦らず、ゆっくりと信頼を積み上げる関係が理想的。",
+};
+
+let cur=0,selected=null,scores={secure:0,anxious:0,avoidant:0,fearful:0,words:0,acts:0,gifts:0,time:0,touch:0,healthy:0,codep:0,indep:0,intense:0};
+
+function startQuiz(){
+  document.getElementById('intro').style.display='none';
+  document.getElementById('quiz').style.display='block';
+  renderQ();
+}
+
+function renderQ(){
+  const q=questions[cur];
+  document.getElementById('qcount').textContent=(cur+1)+' / '+questions.length;
+  document.getElementById('progressBar').style.width=(cur/questions.length*100)+'%';
+  document.getElementById('catBadge').textContent=q.cat;
+  document.getElementById('questionText').textContent=q.text;
+  selected=null;
+  document.getElementById('btnNext').className='btn-next';
+
+  const wrap=document.getElementById('optionsWrap');
+  wrap.innerHTML='';
+  q.opts.forEach((opt,i)=>{
+    const btn=document.createElement('button');
+    btn.className='opt-btn';
+    btn.innerHTML=`<span class="opt-label">${String.fromCharCode(65+i)}</span><span>${opt.t}</span>`;
+    btn.onclick=()=>selectOpt(i,btn);
+    wrap.appendChild(btn);
+  });
+}
+
+function selectOpt(i,btn){
+  document.querySelectorAll('.opt-btn').forEach(b=>b.classList.remove('selected'));
+  document.querySelectorAll('.opt-label').forEach((l,idx)=>{l.textContent=String.fromCharCode(65+idx);});
+  btn.classList.add('selected');
+  btn.querySelector('.opt-label').textContent='✓';
+  selected=i;
+  document.getElementById('btnNext').className='btn-next active';
+  document.getElementById('btnNext').textContent=cur+1===questions.length?'結果を見る →':'次へ →';
+}
+
+function nextQ(){
+  if(selected===null)return;
+  const opt=questions[cur].opts[selected];
+  Object.entries(opt.s).forEach(([k,v])=>{ if(k in scores) scores[k]+=v; });
+  cur++;
+  if(cur<questions.length){
+    renderQ();
+  } else {
+    showResult();
+  }
+}
+
+function maxKey(keys){return keys.reduce((a,b)=>scores[a]>scores[b]?a:b);}
+
+function showResult(){
+  document.getElementById('quiz').style.display='none';
+  document.getElementById('result').style.display='block';
+
+  const attachKey=maxKey(['secure','anxious','avoidant','fearful']);
+  const langKey=maxKey(['words','acts','gifts','time','touch']);
+  const patKey=maxKey(['healthy','codep','indep','intense']);
+  const at=attachTypes[attachKey];
+  const lt=langTypes[langKey];
+  const pt=patTypes[patKey];
+
+  const html=`
+  <div class="card fade-in" style="background:linear-gradient(135deg,${at.color}18,${at.color}08);border:1px solid ${at.color}44;animation-delay:0.2s">
+    <div style="display:flex;align-items:center;gap:16px;margin-bottom:20px;">
+      <div style="font-size:44px">${at.emoji}</div>
+      <div>
+        <div class="attach-meta">愛着スタイル</div>
+        <div class="attach-name" style="color:${at.color}">${at.name}</div>
+      </div>
+    </div>
+    <div class="attach-desc">${at.desc}</div>
+  </div>
+
+  <div class="grid2">
+    <div class="card-sm fade-in" style="background:linear-gradient(135deg,${lt.color}15,${lt.color}06);border:1px solid ${lt.color}33;animation-delay:0.3s">
+      <div style="font-size:32px;margin-bottom:10px">${lt.emoji}</div>
+      <div class="card-label">愛情言語</div>
+      <div class="card-value" style="color:${lt.color}">${lt.name}</div>
+    </div>
+    <div class="card-sm fade-in" style="background:linear-gradient(135deg,${pt.color}15,${pt.color}06);border:1px solid ${pt.color}33;animation-delay:0.4s">
+      <div style="font-size:32px;margin-bottom:10px">${pt.emoji}</div>
+      <div class="card-label">恋愛パターン</div>
+      <div class="card-value" style="color:${pt.color}">${pt.name}</div>
+    </div>
+  </div>
+
+  <div class="card fade-in" style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);animation-delay:0.5s">
+    <div style="font-size:12px;letter-spacing:0.2em;color:rgba(240,232,255,0.45);margin-bottom:24px">DETAILED ANALYSIS</div>
+    <div style="margin-bottom:28px">
+      <div class="section-label">▸ 愛着スタイル</div>
+      ${Object.entries(attachTypes).map(([k,v])=>barHTML(v.name,scores[k],15,v.color,v.emoji)).join('')}
+    </div>
+    <div style="margin-bottom:28px">
+      <div class="section-label">▸ 愛情言語</div>
+      ${Object.entries(langTypes).map(([k,v])=>barHTML(v.name,scores[k],12,v.color,v.emoji)).join('')}
+    </div>
+    <div>
+      <div class="section-label">▸ 恋愛パターン</div>
+      ${Object.entries(patTypes).map(([k,v])=>barHTML(v.name,scores[k],12,v.color,v.emoji)).join('')}
+    </div>
+  </div>
+
+  <div class="grid2">
+    <div class="card-sm fade-in" style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);animation-delay:0.6s">
+      <div class="radar-label">RADAR CHART</div>
+      <canvas id="radarCanvas" width="200" height="200"></canvas>
+    </div>
+    <div class="card-sm fade-in" style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);animation-delay:0.7s">
+      <div style="font-size:11px;letter-spacing:0.2em;color:rgba(240,232,255,0.4);margin-bottom:16px">ADVICE</div>
+      <div class="advice-text">${adviceMap[attachKey]}</div>
+    </div>
+  </div>
+
+  <div class="card fade-in" style="background:linear-gradient(135deg,rgba(124,58,237,0.2),rgba(219,39,119,0.15));border:1px solid rgba(192,132,252,0.25);animation-delay:0.8s">
+    <div class="compat-label">✦ 相性の良いタイプ</div>
+    <div class="compat-text">${compatMap[attachKey]}</div>
+  </div>
+
+  <div style="text-align:center;margin-top:32px">
+    <button class="btn-retry" onclick="retry()">もう一度診断する</button>
+  </div>
+  `;
+
+  document.getElementById('resultContent').innerHTML=html;
+
+  setTimeout(()=>{
+    drawRadar();
+    animateBars();
+  },200);
+}
+
+function barHTML(label,val,max,color,emoji){
+  return `<div class="bar-row">
+    <div class="bar-head"><span>${emoji} ${label}</span><span style="color:${color}">0%</span></div>
+    <div class="bar-track"><div class="bar-fill" style="width:0%;background:linear-gradient(90deg,${color}88,${color})" data-val="${Math.round(val/Math.max(max,1)*100)}"></div></div>
+  </div>`;
+}
+
+function animateBars(){
+  document.querySelectorAll('.bar-fill').forEach(el=>{
+    const v=el.dataset.val;
+    setTimeout(()=>{
+      el.style.width=v+'%';
+      el.closest('.bar-row').querySelector('.bar-head span:last-child').textContent=v+'%';
+    },100);
+  });
+}
+
+function drawRadar(){
+  const canvas=document.getElementById('radarCanvas');
+  if(!canvas)return;
+  const ctx=canvas.getContext('2d');
+  const size=200,cx=100,cy=100,r=70;
+  const data=[
+    {label:"安定",val:scores.secure,max:15},
+    {label:"不安",val:scores.anxious,max:15},
+    {label:"回避",val:scores.avoidant,max:15},
+    {label:"恐れ",val:scores.fearful,max:15},
+    {label:"健全",val:scores.healthy,max:12},
+    {label:"情熱",val:scores.intense,max:12},
+  ];
+  const n=data.length;
+  const step=Math.PI*2/n;
+
+  ctx.clearRect(0,0,size,size);
+
+  // Grid
+  [0.25,0.5,0.75,1].forEach(lv=>{
+    ctx.beginPath();
+    data.forEach((_,i)=>{
+      const a=i*step-Math.PI/2;
+      const x=cx+r*lv*Math.cos(a),y=cy+r*lv*Math.sin(a);
+      i===0?ctx.moveTo(x,y):ctx.lineTo(x,y);
+    });
+    ctx.closePath();
+    ctx.strokeStyle='rgba(255,255,255,0.1)';
+    ctx.lineWidth=1;
+    ctx.stroke();
+  });
+
+  // Axes
+  data.forEach((_,i)=>{
+    const a=i*step-Math.PI/2;
+    ctx.beginPath();
+    ctx.moveTo(cx,cy);
+    ctx.lineTo(cx+r*Math.cos(a),cy+r*Math.sin(a));
+    ctx.strokeStyle='rgba(255,255,255,0.1)';
+    ctx.stroke();
+  });
+
+  // Data polygon
+  ctx.beginPath();
+  data.forEach((d,i)=>{
+    const a=i*step-Math.PI/2;
+    const v=(d.val/Math.max(d.max,1));
+    const x=cx+r*v*Math.cos(a),y=cy+r*v*Math.sin(a);
+    i===0?ctx.moveTo(x,y):ctx.lineTo(x,y);
+  });
+  ctx.closePath();
+  ctx.fillStyle='rgba(180,100,255,0.25)';
+  ctx.fill();
+  ctx.strokeStyle='rgba(200,130,255,0.8)';
+  ctx.lineWidth=2;
+  ctx.stroke();
+
+  // Dots
+  data.forEach((d,i)=>{
+    const a=i*step-Math.PI/2;
+    const v=(d.val/Math.max(d.max,1));
+    ctx.beginPath();
+    ctx.arc(cx+r*v*Math.cos(a),cy+r*v*Math.sin(a),4,0,Math.PI*2);
+    ctx.fillStyle='#c084fc';
+    ctx.fill();
+  });
+
+  // Labels
+  ctx.fillStyle='rgba(255,255,255,0.6)';
+  ctx.font='9px Noto Sans JP';
+  ctx.textAlign='center';
+  ctx.textBaseline='middle';
+  data.forEach((d,i)=>{
+    const a=i*step-Math.PI/2;
+    ctx.fillText(d.label,cx+(r+20)*Math.cos(a),cy+(r+20)*Math.sin(a));
+  });
+}
+
+function retry(){
+  cur=0;selected=null;
+  Object.keys(scores).forEach(k=>scores[k]=0);
+  document.getElementById('result').style.display='none';
+  document.getElementById('intro').style.display='block';
+}
+
+// Stars
+const starsEl=document.getElementById('stars');
+for(let i=0;i<60;i++){
+  const s=document.createElement('div');
+  s.className='star';
+  const sz=Math.random()*2+1;
+  s.style.cssText=`width:${sz}px;height:${sz}px;left:${Math.random()*100}%;top:${Math.random()*100}%;opacity:${Math.random()*0.6+0.1};animation:twinkle ${Math.random()*3+2}s ease-in-out infinite alternate;animation-delay:${Math.random()*4}s`;
+  starsEl.appendChild(s);
+}
+</script>
+
+</body>
+</html>
